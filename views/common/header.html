@@ -1,0 +1,123 @@
+<div class="layui-header">
+    <div class="layui-logo layui-hide-xs layui-bg-black">悦读后台管理</div>
+    <!-- 头部区域（可配合layui 已有的水平导航） -->
+    <ul class="layui-nav layui-layout-right">
+        <li class="layui-nav-item layui-hide layui-show-md-inline-block">
+            欢迎你：admin,最后一次登录时间：2021-01-09
+        </li>
+        <li class="layui-nav-item layui-hide layui-show-md-inline-block">
+            <a href="javascript:;">
+                <img class="layui-nav-img" id="userImg">
+            </a>
+            <dl class="layui-nav-child">
+                <dd><a href="javascript:;" class="layui-font-12 personal">个人信息</a></dd>
+                <dd><a href="" class="layui-font-12">修改密码</a></dd>
+                <dd><a href="/logout" class="layui-font-12">退出账号</a></dd>
+            </dl>
+        </li>
+    </ul>
+</div>
+<script src="/js/jquery.js"></script>
+<!-- <script src="/layui/layui.js"></script> -->
+<script>
+    $(function () {
+        fetchImg()
+    })
+    function fetchImg() {
+        let userImg = JSON.parse(localStorage.getItem('img'))
+        $("#userImg").attr('src', userImg.imgPath)
+        // 头像上传绑定变量
+        let content = `<form class="layui-form" style="height:370px;display:flex;flex-direction: column;justify-content: center;">
+                        <div class="layui-form-item" style="display:flex;justify-content:center;align-items:center;">
+                            <span style="font-size:12px;color:#868686;">头像</span>
+                            <img id="preview" style="width:50px;height:50px;border-radius: 50px;margin-left: 20px;">
+                            <div style="width:210px;margin-left: 20px;height: 100%">
+                                <input type="file" name="file" style="display:none;" id="file"/>
+                                <button type="button" class="layui-btn-primary layui-border-blue" style="height:24px;width:74px;font-size:12px;margin-top:2px;" id="imgBtn">上传新头像</button>
+                                <div style="font-size:12px;color:#9c9c9c;margin-top:6px;">支持JPG、PNG、GIF格式，小于2MB</div>
+                            </div>     
+                        </div>
+                        <div class="layui-form-item" style="display:flex;justify-content:center;align-items:center;">
+                            <span style="font-size:12px;color:#868686;width:50px;text-align:center;">昵称</span>
+                            <div style="width:290px;height: 100%;margin-left:10px;">
+                               <input type="text" name="userName" style="padding:6px;border:solid 1px #e0e1e5;width:270px;box-sizing:border-box;font-size:14px"/>
+                            </div>     
+                        </div>
+                        <div class="layui-form-item" style="display:flex;align-items:center;">
+                            <label class="layui-form-label" style="text-align:center;font-size:12px;color:#868686;width:30px;margin-left: 19px;">性别</label>
+                            <div class="layui-input-block" style="min-height:38px;margin-left:10px">
+                                <input type="radio" name="sex" value="男" title="男" checked>
+                                <input type="radio" name="sex" value="女" title="女">
+                            </div>     
+                        </div>
+                        <div class="layui-form-item" style="display:flex;justify-content:center;">
+                            <span style="font-size:12px;color:#868686;width:50px;text-align:center;">签名</span>
+                            <textarea name="contents" id="" cols="30" rows="10" style="margin: 0px 20px 0px 10px;height:60px;width:270px;resize: none;;border:solid 1px #e0e1e5"></textarea>   
+                        </div>
+                    </form>
+                    `
+        layui.use(['layer', 'upload', 'form'], function () {
+            var layer = layui.layer;
+            var upload = layui.upload;
+            var form = layui.form
+            // 个人信息
+            $('.personal').click(function () {
+                layer.open({
+                    type: 1,
+                    title: ['个人资料', 'padding:0px;text-align:center;'],
+                    anim: 0,
+                    area: ['400px', '510px'],
+                    shadeClose: false,//开启遮罩关闭
+                    content: content,
+                    success: function () {
+                        let img = JSON.parse(localStorage.getItem("img"))
+                        $("#preview").attr('src', img.imgPath)
+                        initUpload(upload, layer)
+                    },
+                    btn: ["保存", "取消"]
+                });
+                form.render()
+            })
+        });
+    }
+    // 头像上传并更新数据库
+    function initUpload(upload, layer) {
+        var uploadInst = upload.render({
+            elem: '#imgBtn' //绑定元素
+            , url: '/uploadImg' //上传接口
+            , done: function (res) {
+                //上传完毕回调  
+                let { code, img } = res
+                if (code == 10022) {
+                    // 新头像赋值
+                    $("#preview").attr('src', img)
+                    updateHeadImg(img)
+                } else {
+                    layer.msg(message)
+                }
+            }
+        });
+    }
+    // 更新数据库
+    function updateHeadImg(img) {
+        $.ajax({
+            url: '/updateImg',
+            type: 'post',
+            data: { img },
+            dataType: 'json',
+            success: (res) => {
+                let { code, message } = res
+                if (code == 10024) {
+                    $("#userImg").attr('src', img)
+                    let oldImg = JSON.parse(localStorage.getItem('img') || '{}')
+                    oldImg.imgPath = img
+                    localStorage.setItem('img', JSON.stringify(oldImg) || '{}')
+                    layer.msg(message, { icon: 1, time: 800 })
+                } else {
+                    layer.msg(message, { icon: 0, time: 800 })
+                }
+            }
+        })
+    }
+
+</script>

@@ -1,0 +1,172 @@
+<form class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">标题</label>
+        <div class="layui-input-inline">
+            <input type="text" name="title" required lay-verify="required" placeholder="请输入标题" autocomplete="off"
+                class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">作者</label>
+        <div class="layui-input-inline">
+            <input type="text" name="author" required lay-verify="required" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">封面</label>
+        <div class="layui-upload layui-input-inline">
+            <button type="button" class="layui-btn" id="test1">上传图片</button>
+            <div class="layui-upload-list">
+                <img class="layui-upload-img" id="demo1" width="200px" height="120px">
+                <p id="demoText"></p>
+            </div>
+
+            <input type="hidden" name="img" class="layui-input">
+
+            <div style="width:200px;">
+                <div class="layui-progress layui-progress" lay-showpercent="yes" lay-filter="demo">
+                    <div class="layui-progress-bar" lay-percent=""></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">所属分类</label>
+        <div class="layui-input-inline">
+            <select name="sort" lay-filter="aihao">
+                <option value="0">请选择</option>
+                {{each sortData item index}}
+                <option value="{{item.cate_id}}">{{item.cate_name}}</option>
+                {{/each}}
+            </select>
+        </div>
+        </select>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">简介</label>
+        <div class="layui-input-block">
+            <textarea name="content" placeholder="请输入内容" class="layui-textarea"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">审核状态</label>
+        <div class="layui-input-block">
+            <input type="radio" name="status" value="0" title="待审核" checked="">
+            <input type="radio" name="status" value="1" title="审核通过">
+            <input type="radio" name="status" value="2" title="审核失败">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">添加时间</label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" id="time" placeholder="选择时间" name="addtime" autocomplete="off">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="formDemo">发布文章</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
+
+
+
+<script>
+    //Demo
+    layui.use(['form', 'upload', 'element', 'layer', 'laydate'], function () {
+        var form = layui.form;
+        var upload = layui.upload;
+        var element = layui.element;
+        var layer = layui.layer;
+        var laydate = layui.laydate
+
+        //监听提交
+        form.on('submit(formDemo)', function (data) {
+            let artData = data.field
+            let { title, author, sort, content, status, addtime, img } = artData
+            // 创建formData对象，并插入值
+            let formData = new FormData()
+            formData.append("title", title)
+            formData.append("author", author)
+            formData.append("sort", sort)
+            formData.append("content", content)
+            formData.append("status", status)
+            formData.append("addtime", addtime)
+            formData.append('img', img)
+            $.ajax({
+                type: 'post',
+                url: "http://localhost:3000/addArticle",
+                data: formData,
+                dataType: 'json',
+                processData: false,
+                contentType: false,
+                async: true,
+                cache: false,
+                success: function (res) {
+                    let { code, message } = res
+                    if (code == 10000) {
+                        layer.msg(message, { icon: 1, time: 1000 })
+                       location.href = '/article_list'
+                    }
+                }
+            })
+            return false;
+        });
+
+        // 日期时间选择器
+        laydate.render({
+            elem: '#time'
+            , type: 'datetime'
+        });
+
+        // 图片上传
+        var uploadInst = upload.render({
+            elem: '#test1'
+            // 改成自己的上传接口
+            , url: '/cover'
+            // 这个应该是图片预览函数
+            , before: function (obj) {
+                //预读本地文件示例，不支持ie8
+                obj.preview(function (index, file, result) {
+                    $('#demo1').attr('src', result); //图片链接（base64）
+                });
+
+                element.progress('demo', '0%'); //进度条复位
+                layer.msg('上传中', { icon: 16, time: 0 });
+            }
+            // 图片上传成功的回调
+            , done: function (res) {
+                //上传成功的一些操作
+                let { code, path } = res
+                if (code == 10000) {
+                    let imgEle = document.getElementsByName('img')[0]
+                    imgEle.value = path
+                } else {
+                    layer.msg(message)
+                }
+                $('#demoText').html(''); //置空上传失败的状态
+            }
+            // 图片上传失败
+            , error: function () {
+                //演示失败状态，并实现重传
+                var demoText = $('#demoText');
+                demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+                demoText.find('.demo-reload').on('click', function () {
+                    uploadInst.upload();
+                });
+            }
+            //进度条
+            , progress: function (n, elem, e) {
+                element.progress('demo', n + '%'); //可配合 layui 进度条元素使用
+                if (n == 100) {
+                    layer.msg('上传完毕', { icon: 1 });
+                }
+            }
+        });
+
+        form.render()
+    });
+
+
+</script>

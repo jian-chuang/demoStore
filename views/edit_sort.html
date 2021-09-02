@@ -1,0 +1,74 @@
+<form class="layui-form" lay-filter="sort">
+    <input type="hidden" name="cate_id">
+    <div class="layui-form-item">
+        <label class="layui-form-label">分类名称</label>
+        <div class="layui-input-inline">
+            <input type="text" name="title" required lay-verify="required" placeholder="请输入标题" autocomplete="off"
+                class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">是否显示</label>
+        <div class="layui-input-block">
+            <input type="radio" name="is_show" value="1" title="显示" checked>
+            <input type="radio" name="is_show" value="0" title="不显示">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">选择时间</label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" id="time" placeholder="选择时间" name="addtime" autocomplete="off">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="formDemo">确认编辑</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
+<script>
+    layui.use(['form', 'layer', 'laydate'], function () {
+        var form = layui.form;
+        var element = layui.element;
+        var layer = layui.layer;
+        var laydate = layui.laydate
+        form.val('sort',{
+            "cate_id":"{{sortData.cate_id}}",
+            'title':"{{sortData.cate_name}}",
+            'is_show': "{{sortData.is_show}}" == 1 ? true : false,
+            'addtime':"{{sortData.add_date}}",
+        })
+        //监听提交
+        form.on('submit(formDemo)', function (data) {
+            let { title, is_show, addtime,cate_id } = data.field
+            $.ajax({
+                url:'/updateSort',
+                type:'post',
+                data:{title,is_show,addtime,cate_id},
+                dataType:'json',
+                async:true,
+                cache:false,
+                success:function(res){
+                    let {code,message} = res;
+                    if(code == 10018){
+                        layer.msg(message,{icon:1,time:500})
+                        setTimeout(()=>{
+                            location.href = '/article_sort'
+                        },1000)
+                    }else{
+                        code == 10016 ? layer.msg(message,{icon:0,time:800}) : layer.msg(message)
+                    }
+                }
+            })
+            return false;
+        })
+
+        // 日期时间选择器
+        laydate.render({
+            elem: '#time'
+            , type: 'datetime'
+        });
+        form.render()
+    })
+</script>

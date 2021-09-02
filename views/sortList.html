@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<link rel="stylesheet" href="/layui/css/layui.css">
+<link href="https://cdn.bootcdn.net/ajax/libs/nprogress/0.2.0/nprogress.css" rel="stylesheet">
+
+<body>
+    <div class="layui-layout layui-layout-admin">
+        {{include './common/header.html'}}
+        {{include './common/side.html'}}
+
+        <div class="layui-body">
+            <!-- 内容主体区域 -->
+            <div style="padding: 15px;" id="content">
+                <div class="layui-btn-group">
+                    <button type="button" class="layui-btn editBtn">添加分类</button>
+                </div>
+                <table class="layui-table">
+                    <colgroup>
+                        <col width="150">
+                        <col width="150">
+                        <col width="200">
+                        <col>
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>分类名称</th>
+                            <th>是否显示前台</th>
+                            <th>添加时间</th>
+                            <th>添加时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sortData"></tbody>
+                </table>
+            </div>
+        </div>
+
+        {{include './common/foot.html'}}
+    </div>
+</body>
+<script src="/js/jquery.js"></script>
+<script src="/layui/layui.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/nprogress/0.2.0/nprogress.js"></script>
+<script>
+    // 页面加载时动态实时获取数据
+    $(function () { fetchSortData() })
+    // 函数封装
+    function fetchSortData() {
+        $.get('/sortData', (res) => {
+            let tabHtml = '';
+            res.forEach((item, index) => {
+                let { cate_id, cate_name, is_show, add_date, update_date } = item
+                tabHtml += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${cate_name}</td>
+                        <td>${is_show}</td>
+                        <td>${add_date}</td>
+                        <td>${update_date}</td>
+                        <td>
+                            <button type="button" cate_id = ${cate_id} class="layui-btn layui-btn-sm editBtn">编辑</button>
+                            <button type="button" cate_id = ${cate_id} class="layui-btn layui-btn-danger layui-btn-sm delBtn">删除</button>
+                        </td>
+                    </tr>
+                `
+                $('#sortData').html(tabHtml)
+            })
+        })
+    }
+
+    // 删除功能(动态数据使用委托事件动态绑定事件)
+    $("#sortData").on('click', '.delBtn', function () {
+        let _this = this;
+        layer.confirm('确定删除吗', {
+            btn: ['确定', '取消']
+        }, function () {
+            let cate_id = $(_this).attr('cate_id')
+            $.post('/delData', { cate_id }, function (res) {
+                let { code, message } = res
+                if (code == 10014) {
+                    layer.msg(message, { icon: 1, time: 500 })
+                    setTimeout(() => {
+                        fetchSortData()
+                    }, 500)
+                }
+            }, 'json')
+        })
+    })
+
+    // 编辑功能(动态数据使用委托事件动态绑定事件)
+    $('#sortData').on('click', '.editBtn', function () {
+        let cate_id = $(this).attr('cate_id')
+        $.get('/editSort', { cate_id }, function (res) {
+            $('#content').html(res)
+        })
+    })
+
+    // 分类添加
+    $('.editBtn').click(function () {
+        $.get('/addSort', (res) => {
+            $('#content').html(res)
+        })
+    })
+
+</script>
+
+</html>

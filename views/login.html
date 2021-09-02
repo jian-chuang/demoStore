@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <link rel="stylesheet" href="/css/login.css">
+
+</head>
+
+<body>
+    <div class="formbg"></div>
+    <div class="createform">
+        <h1>Welcome</h1>
+        <p>Do you already have an account? <button class="login" data-function="login">Sign In</button></p>
+        <div class="formcontent">
+            <label for="email">username</label>
+            <input type="text" placeholder="enter one user name">
+            <label for="password">Password</label>
+            <input type="password" placeholder="Please input a password">
+            <label for="password">Confirm password</label>
+            <input type="password" placeholder="Confirm password">
+            <button class="button">Register</button>
+        </div>
+    </div>
+    <div class="loginform">
+        <h1>Welcome</h1>
+        <p>New Here? <button class="create" data-function="create">Create an Account</button></p>
+        <div class="formcontent">
+            <label for="email">username</label>
+            <input type="text" name="username" placeholder="请输入用户名">
+            <label for="password">Password</label>
+            <input type="password" name="password" placeholder="请输入密码">
+            <button class="button" id="loginBtn">用户登录</button>
+        </div>
+    </div>
+
+
+    <div class="clear"></div>
+</body>
+<script src="/layui/layui.js"></script>
+<script src="/js/jquery.js"></script>
+
+<script>
+    $('[data-function=create]').on("click", function () {
+        $(".formbg").addClass("moveright");
+        $(".loginform").addClass("hide");
+        $(".createform").addClass("show");
+    });
+    $('[data-function=login]').on("click", function () {
+        $(".formbg").removeClass("moveright");
+        $(".loginform").removeClass("hide");
+        $(".createform").removeClass("show");
+    });
+
+
+    //失去焦点验证
+    $("input[name='username']").blur(function () {
+        let username = $("input[name='username']").val()
+        if (username === '') {
+            alert('用户名不能为空')
+        }
+    })
+    $("input[name='password']").blur(function () {
+        let password = $("input[name='password']").val()
+        if (password === '') {
+            alert('请输入密码')
+        }
+    })
+
+    // 登录请求
+    $('#loginBtn').on('click', function () {
+        let password = $("input[name='password']").val()
+        let username = $("input[name='username']").val()
+        $.post('/submit', { username, password }, function (res) {
+            let { code, message,userInfo } = res
+            if (code == 10020) {
+                layer.msg(message, { icon: 1, time: 500 })
+                let Path = {imgPath:userInfo.img}
+                // 登录成功后并存储到本地存储里面
+                localStorage.setItem('img',JSON.stringify(Path))
+                setTimeout(() => {
+                    location.href = '/'
+                }, 1000)
+            } else {
+                layer.msg(message, { time: 500, icon: 0 })
+            }
+        }, 'json')
+    })
+</script>
+
+</html>
