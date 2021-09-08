@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <style>
+        .layui-table-cell{
+            height: 37px;
+            line-height: 37px;
+        }
+    </style>
+</head>
+<body>
+    <div class="layui-layout layui-layout-admin">
+        {{include './common/header.html'}}
+        {{include './common/side.html'}}
+        <div class="layui-body">
+            <!-- 内容主体区域 -->
+            <div id="content">
+                <table class="layui-hide" id="table" lay-filter="table"></table>
+            </div>
+        </div>
+        {{include './common/foot.html'}}
+    </div>
+</body>
+<script src="/js/jquery.js"></script>
+<script src="/layui/layui.js"></script>
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-btn-container">
+      <button class="layui-btn layui-btn-sm" lay-event="getCheckData">添加文章</button>
+      <button class="layui-btn layui-btn-sm" lay-event="getCheckData">回收站列表</button>
+    </div>
+  </script>
+
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    <a class="layui-btn layui-btn-xs" lay-event="detail">查看详情</a>
+    <a class="layui-btn layui-btn-xs" lay-event="recovery">加入回收站</a>
+  </script>
+<!-- 注意：如果你直接复制所有代码到本地，上述 JS 路径需要改成你本地的 -->
+<script>
+    layui.use('table', function () {
+        var table = layui.table;
+        table.render({
+            elem: '#table'
+            , url: '/fetchData'
+            , toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
+            , cellMinWidth: 80
+            , title: '用户数据表'
+            , cols: [[
+                { field: 'title', title: '标题', width: 120, align: 'center' }
+                , { field: 'author', title: '作者', width: 120, align: 'center' }
+                , {
+                    field: 'img', title: '封面', align: 'center', templet: function (d) {
+                        let imgHtml = `<img src='${d.img}' style="height:100%;width:60px"/>`
+                        return imgHtml
+                    }
+                }
+                , { field: 'cate_name', title: '分类', width: 100, align: 'center' }
+                , {
+                    field: 'pub_status', title: '当前状态', width: 110, align: 'center', templet: (item) => {
+                        let statusMap = {
+                            '0': "待审核",
+                            '1': "审核通过",
+                            '2': "审核失败"
+                        }
+                        return statusMap[item.pub_status]
+                    }
+                }
+                , { field: 'pub_time', title: '添加时间', width: 180, align: 'center' }
+                , { field: 'update_time', title: '更新时间', width: 180, align: 'center' }
+                , { fixed: 'right', title: '操作', toolbar: '#barDemo', width: 280, align: 'center' }
+            ]]
+            , page: true
+            , page: 1
+            , limit: 10
+        });
+
+        //头工具栏事件
+        table.on('toolbar(test)', function (obj) {
+            var checkStatus = table.checkStatus(obj.config.id);
+            switch (obj.event) {
+                case 'getCheckData':
+                    var data = checkStatus.data;
+                    layer.alert(JSON.stringify(data));
+                    break;
+            };
+        });
+
+        //监听行工具事件
+        table.on('tool(table)', function (obj) {
+            let { data, event } = obj;
+            switch (event) {
+                case 'del':
+                    break;
+                case 'edit':
+                    break;
+                case 'detail':
+                    break;
+                case 'recovery':
+                    break;
+            }
+        });
+    });
+</script>
+
+</html>

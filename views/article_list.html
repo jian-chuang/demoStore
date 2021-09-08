@@ -50,6 +50,7 @@
                     <tbody id="tbody">
                     </tbody>
                 </table>
+                <div id="demo7"></div>
             </div>
         </div>
         {{include './common/foot.html'}}
@@ -59,39 +60,74 @@
 <script src="/layui/layui.js"></script>
 <script src="https://cdn.bootcdn.net/ajax/libs/nprogress/0.2.0/nprogress.js"></script>
 <script>
+    let curr = 1;
+    let limit = 10;
     $(function () {
         fetchArticleData()
     })
     // 页面加载时执行函数
     function fetchArticleData() {
-        $.get('/getArticleData', function (res) {
+
+        layui.use('laypage', function () {
+            var laypage = layui.laypage;
+            fetchData(curr, limit, (res) => {
+                let { count, data } = res
+                renderData(laypage, count, limit)
+            })
+
+        });
+        //封装一个获取文章数据的函数
+        function fetchData(curr, limit, callback) {
+            $.get('getArticleData', { curr, limit }, function (res) {
+                callback && callback(res)
+            }, 'json')
+        }
+
+        // 关联分页组件
+        function renderData(laypage, count, limit) {
+            laypage.render({
+                elem: 'demo7',
+                count,
+                limit,
+                jump: function (obj) {
+                    let { curr, limit } = obj
+                    fetchData(curr, limit, (res) => {
+                        let tobdy = renderTable(res.data)
+                        $('#tbody').html(tobdy)
+                    })
+                }
+            })
+        }
+
+        // 页面数据拼接
+        function renderTable(data) {
             let articleData = '';
-            res.forEach((item, index) => {
+            data.forEach((item, index) => {
                 let { art_id, title, author, img, cate_name, pub_time, pub_status, update_time } = item
                 articleData += `
                 <tr style="text-align:center;">
-                    <td>${index + 1}</td>
-                    <td>
-                        <div class="title">${title}</div>
+                        <td>${index + 1}</td>
+                        <td>
+                            <div class="title">${title}</div>
+                        </td>
+                        <td>${author}</td>
+                        <td><img src="${img}" class="img" style="height: 50px;"></td>
+                        <td>${cate_name}</td>
+                        <td><button class="layui-btn layui-btn-sm articleDetail" art_id=${art_id}>查看全文</button>
+                        </td> 
+                        <td>${pub_time}</td>
+                        <td>${pub_status}</td>
+                        <td>${update_time}</td>
+                        <td>
+                        <button type="button" art_id=${art_id} class="layui-btn layui-btn-sm editBtn">编辑</button>
+                        <button type="button" art_id=${art_id} img=${img} class="layui-btn layui-btn-danger layui-btn-sm delBtn">删除</button>
+                        <button type="button" class="layui-btn layui-btn-normal layui-btn-sm">加入回收站</button>
                     </td>
-                    <td>${author}</td>
-                    <td><img src="${img}" class="img" style="height: 50px;"></td>
-                    <td>${cate_name}</td>
-                    <td><button class="layui-btn layui-btn-sm articleDetail" art_id=${art_id}>查看全文</button>
-                    </td> 
-                    <td>${pub_time}</td>
-                    <td>${pub_status}</td>
-                    <td>${update_time}</td>
-                    <td>
-                    <button type="button" art_id=${art_id} class="layui-btn layui-btn-sm editBtn">编辑</button>
-                    <button type="button" art_id=${art_id} img=${img} class="layui-btn layui-btn-danger layui-btn-sm delBtn">删除</button>
-                    <button type="button" class="layui-btn layui-btn-normal layui-btn-sm">加入回收站</button>
-                </td>
-                </tr>
-                `
-                $('#tbody').html(articleData)
+                </tr> `
             })
-        })
+            return articleData
+        }
+
     }
     // 文章编辑
     $('#tbody').on('click', '.editBtn', function () {
@@ -129,11 +165,11 @@
         $.get('/articleDetail', { art_id }, function (res) {
             let { title, content, author } = res
             let htmlStr = `
-                    <div style="padding:10px;">
+                <div style="padding:10px;">
                     <h2 style='text-align:center'>${title}</h2>
-                    <h2 style='text-align:center'>作者： ${author}</h2> 
+                    <h2 style='text-align:center'>作者： ${author}</h2>
                     <p>${content}</p>
-                    <div>`
+                <div>`
             layer.open({
                 type: 1,
                 shadeClose: true,
@@ -144,8 +180,8 @@
     })
 
     // 文章添加
-    $('.addBtn').click(function(){
-        $.get('/addPage',function(res){
+    $('.addBtn').click(function () {
+        $.get('/addPage', function (res) {
             $('#content').html(res)
         })
     })

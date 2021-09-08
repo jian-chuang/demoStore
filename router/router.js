@@ -75,6 +75,9 @@ router.get('/editSort',sortController.editSort)
 router.post('/updateSort',sortController.updateSort)
 
 
+// 动态数据表格
+router.get('/dynTable',articleController.dynTable)
 
+router.get('/fetchData',articleController.fetchData)
 
 module.exports = router
