@@ -24,7 +24,7 @@ app.use((req, res, next) => {
     let routerPath = req.path.toLowerCase()
     console.log(routerPath);
     // 设置不需要验证的路由
-    let noCheckSession = ['/login', '/submit', '/logout','/dyntable','/fetchdata'];
+    let noCheckSession = ['/login', '/submit', '/logout','/fetchdata'];
     if (noCheckSession.includes(routerPath)) {
         next()
     } else {

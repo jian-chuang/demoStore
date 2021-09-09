@@ -30,16 +30,16 @@ articleController.listPage = async (req, res) => {
 //     })
 //     res.json(data)
 // }
-articleController.getData = async (req,res)=>{
-    let {curr,limit} = req.query;
-    let offset = (curr - 1) * limit
-    let sql = `select count(*) as count from articlelist where pub_status = 1 and is_delete = 0`
-    let sql2 = `select ti.*,t2.cate_name from articlelist ti left join category t2 on ti.sort = t2.cate_id
-            where ti.pub_status = 1 and ti.is_delete = 0 order by art_id desc limit ${offset},${limit};`
-    let data = await dbquery(sql)
-    let data2 = await dbquery(sql2)
-    res.json({count:data[0].count,data:data2})
-}
+// articleController.getData = async (req,res)=>{
+//     let {curr,limit} = req.query;
+//     let offset = (curr - 1) * limit
+//     let sql = `select count(*) as count from articlelist where pub_status = 1 and is_delete = 0`
+//     let sql2 = `select ti.*,t2.cate_name from articlelist ti left join category t2 on ti.sort = t2.cate_id
+//             where ti.pub_status = 1 and ti.is_delete = 0 order by art_id desc limit ${offset},${limit};`
+//     let data = await dbquery(sql)
+//     let data2 = await dbquery(sql2)
+//     res.json({count:data[0].count,data:data2})
+// }
 
 
 // 添加文章页面
@@ -147,17 +147,21 @@ articleController.delArticle = async (req, res) => {
     }
 }
 
-
+// 动态数据列表
 articleController.dynTable = (req,res)=>{
     res.render('article.html')
 }
 
 articleController.fetchData = async (req,res)=>{
-    let {page,limit:pagesize} = req.query
+    let {page,limit:pagesize,keyWord} = req.query
+    let where = ''
+    if(keyWord){
+        where += `and title like '%${keyWord}%'`
+    }
     let offset = (page - 1 ) * pagesize
-    let sql = `select count(*) as count from articlelist where is_delete = 0`
+    let sql = `select count(*) as count from articlelist where is_delete = 0 ${where}`
     let sql2 =`select ti.*,t2.cate_name from articlelist ti left join category t2 on ti.sort = t2.cate_id
-    where ti.is_delete = 0 order by art_id desc limit ${offset},${pagesize};`
+    where ti.is_delete = 0 ${where} order by art_id desc limit ${offset},${pagesize};`
     let Promise1 = dbquery(sql)
     let Promise2 = dbquery(sql2)
     let result = await Promise.all([Promise1,Promise2])
@@ -169,6 +173,18 @@ articleController.fetchData = async (req,res)=>{
         data:data,
     }
     res.json(response)  
+}
+
+// 回收站
+articleController.recovery = async (req,res)=>{
+    let {art_id} = req.body
+    let sql = `update articlelist set is_delete = 1 where art_id = ${art_id}`
+    let result = await dbquery(sql)
+    if(result.affectedRows){
+        res.json({code:10024,message:'回收成功'})
+    }else{
+        res.json({code:10023,message:'回收失败'})
+    }
 }
 
 module.exports = articleController

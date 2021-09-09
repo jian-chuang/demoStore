@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,30 +8,37 @@
     <title>Document</title>
     <link rel="stylesheet" href="/layui/css/layui.css">
     <style>
-        .layui-table-cell{
-            height: 37px;
-            line-height: 37px;
+        .layui-table-cell {
+            height: 36px;
+            line-height: 36px;
+        }
+        .layui-table-cell img:hover{
+            cursor: pointer;
         }
     </style>
 </head>
+
 <body>
     <div class="layui-layout layui-layout-admin">
         {{include './common/header.html'}}
         {{include './common/side.html'}}
         <div class="layui-body">
             <!-- 内容主体区域 -->
-            <div id="content">
+            <div id="content" style="padding:15px;">
                 <table class="layui-hide" id="table" lay-filter="table"></table>
             </div>
         </div>
         {{include './common/foot.html'}}
     </div>
 </body>
-<script src="/js/jquery.js"></script>
-<script src="/layui/layui.js"></script>
+
 <script type="text/html" id="toolbarDemo">
-    <div class="layui-btn-container">
-      <button class="layui-btn layui-btn-sm" lay-event="getCheckData">添加文章</button>
+    <div class="layui-btn-container" style="display: flex;">
+      <div class="layui-input-inline">
+        <input class="layui-input" type="text" id= "keyword" autocomplete="off" style="width: 200px;height:30px;font-size: 12px;">
+      </div>
+      <button class="layui-btn layui-btn-sm" lay-event="search">搜索</button>
+      <button class="layui-btn layui-btn-sm" lay-event="addArticle">添加文章</button>
       <button class="layui-btn layui-btn-sm" lay-event="getCheckData">回收站列表</button>
     </div>
   </script>
@@ -41,11 +49,13 @@
     <a class="layui-btn layui-btn-xs" lay-event="detail">查看详情</a>
     <a class="layui-btn layui-btn-xs" lay-event="recovery">加入回收站</a>
   </script>
-<!-- 注意：如果你直接复制所有代码到本地，上述 JS 路径需要改成你本地的 -->
+<script src="/js/jquery.js"></script>
+<script src="/layui/layui.js"></script>
 <script>
-    layui.use('table', function () {
+    layui.use(['table', 'layer'], function () {
         var table = layui.table;
-        table.render({
+        var layer = layui.layer
+        let tableList = table.render({
             elem: '#table'
             , url: '/fetchData'
             , toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
@@ -55,8 +65,12 @@
                 { field: 'title', title: '标题', width: 120, align: 'center' }
                 , { field: 'author', title: '作者', width: 120, align: 'center' }
                 , {
-                    field: 'img', title: '封面', align: 'center', templet: function (d) {
-                        let imgHtml = `<img src='${d.img}' style="height:100%;width:60px"/>`
+                    field: 'img', title: '封面', align: 'center', width: 150, templet: function (d) {
+                        let imgHtml = `
+                        <div class="layer-photos-demo">
+                            <img src='${d.img}' style="height:100%;width:60px" />
+                        </div>
+                        `
                         return imgHtml
                     }
                 }
@@ -73,20 +87,30 @@
                 }
                 , { field: 'pub_time', title: '添加时间', width: 180, align: 'center' }
                 , { field: 'update_time', title: '更新时间', width: 180, align: 'center' }
-                , { fixed: 'right', title: '操作', toolbar: '#barDemo', width: 280, align: 'center' }
+                , { fixed: 'right', title: '操作', toolbar: '#barDemo', align: 'center' }
             ]]
             , page: true
             , page: 1
             , limit: 10
+            , done: function (res, curr, count) {
+                layer.photos({
+                    photos: '.layer-photos-demo',
+                    anim:5,
+                    time:2000
+                })
+            }
         });
-
         //头工具栏事件
-        table.on('toolbar(test)', function (obj) {
-            var checkStatus = table.checkStatus(obj.config.id);
+        table.on('toolbar(table)', function (obj) {
             switch (obj.event) {
-                case 'getCheckData':
-                    var data = checkStatus.data;
-                    layer.alert(JSON.stringify(data));
+                case 'addArticle':
+                    $.get('/addPage', function (res) {
+                        $('#content').html(res)
+                    })
+                    break;
+                case 'search':
+                    let keyWord = $('#keyword').val()
+                    serchKeyword(keyWord)
                     break;
             };
         });
@@ -94,17 +118,72 @@
         //监听行工具事件
         table.on('tool(table)', function (obj) {
             let { data, event } = obj;
+            let { art_id, img } = data
             switch (event) {
                 case 'del':
+                    delData(art_id, img)
                     break;
                 case 'edit':
+                    editData(art_id)
                     break;
                 case 'detail':
                     break;
                 case 'recovery':
+                    recovery(art_id)
                     break;
             }
         });
+        // 删除操作
+        function delData(art_id, img) {
+            layer.confirm('确定删除吗', {
+                btn: ['确定', '取消']
+            }, function () {
+                $.post('/del', { art_id, img }, (res) => {
+                    let { code, message } = res
+                    if (code == 10000) {
+                        tableList.reload();
+                        layer.closeAll();
+                        layer.msg(message, { icon: 1, time: 1000 })
+                    }
+                }, 'json')
+            })
+        }
+
+        // 编辑操作
+        function editData(art_id) {
+            $.post('/editPage', { art_id }, (res) => {
+                $('#content').html(res)
+            })
+        }
+
+        // 加入回收站
+        function recovery(art_id) {
+            layer.confirm('确定回收吗', {
+                btn: ['确定', '取消']
+            }, function () {
+                $.post('/recovery', { art_id }, (res) => {
+                    let { code, message } = res
+                    if (code == 10024) {
+                        tableList.reload();
+                        layer.closeAll();
+                        layer.msg(message, { icon: 1, time: 1000 })
+                    } else {
+                        layer.msg(message)
+                    }
+                })
+            })
+        }
+
+        // 搜索关键字
+        function serchKeyword(keyWord) {
+            table.reload('table', {
+                where: {
+                    page: 1,
+                    limit: 10,
+                    keyWord: keyWord
+                }
+            })
+        }
     });
 </script>
 

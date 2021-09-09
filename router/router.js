@@ -28,10 +28,10 @@ router.post('/updateImg',userController.updateImg)
 router.get('/',articleController.indexPage)
 
 // 文章列表
-router.get('/article_list',articleController.listPage)
+// router.get('/article_list',articleController.listPage)
 
 // 文章列表数据加载
-router.get('/getArticleData',articleController.getData)
+// router.get('/getArticleData',articleController.getData)
 
 //文章添加操作
 router.get('/addPage',articleController.addPage)
@@ -79,5 +79,8 @@ router.post('/updateSort',sortController.updateSort)
 router.get('/dynTable',articleController.dynTable)
 
 router.get('/fetchData',articleController.fetchData)
+
+// 回收站
+router.post('/recovery',articleController.recovery)
 
 module.exports = router
