@@ -5,11 +5,33 @@
             <input type="text" name="title" required lay-verify="required" placeholder="请输入标题" autocomplete="off"
                 class="layui-input">
         </div>
-    </div>
-    <div class="layui-form-item">
         <label class="layui-form-label">作者</label>
         <div class="layui-input-inline">
             <input type="text" name="author" required lay-verify="required" autocomplete="off" class="layui-input">
+        </div>
+        <label class="layui-form-label">所属分类</label>
+        <div class="layui-input-inline">
+            <select name="sort" lay-filter="aihao">
+                <option value="0">请选择</option>
+                {{each sortData item index}}
+                <option value="{{item.cate_id}}">{{item.cate_name}}</option>
+                {{/each}}
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">日期</label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" id="time" placeholder="选择时间" name="addtime" autocomplete="off">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">状态</label>
+        <div class="layui-input-block">
+            <input type="radio" name="status" value="0" title="待审核" checked="">
+            <input type="radio" name="status" value="1" title="审核通过">
+            <input type="radio" name="status" value="2" title="审核失败">
         </div>
     </div>
     <div class="layui-form-item">
@@ -20,47 +42,17 @@
                 <img class="layui-upload-img" id="demo1" width="200px" height="120px">
                 <p id="demoText"></p>
             </div>
-
             <input type="hidden" name="img" class="layui-input">
-
-            <div style="width:200px;">
+            <div style="width:140px;">
                 <div class="layui-progress layui-progress" lay-showpercent="yes" lay-filter="demo">
                     <div class="layui-progress-bar" lay-percent=""></div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="layui-form-item">
-        <label class="layui-form-label">所属分类</label>
-        <div class="layui-input-inline">
-            <select name="sort" lay-filter="aihao">
-                <option value="0">请选择</option>
-                {{each sortData item index}}
-                <option value="{{item.cate_id}}">{{item.cate_name}}</option>
-                {{/each}}
-            </select>
-        </div>
-        </select>
-    </div>
     <div class="layui-form-item layui-form-text">
         <label class="layui-form-label">简介</label>
-        <div class="layui-input-block">
-            <textarea name="content" placeholder="请输入内容" class="layui-textarea"></textarea>
-        </div>
-    </div>
-    <div class="layui-form-item">
-        <label class="layui-form-label">审核状态</label>
-        <div class="layui-input-block">
-            <input type="radio" name="status" value="0" title="待审核" checked="">
-            <input type="radio" name="status" value="1" title="审核通过">
-            <input type="radio" name="status" value="2" title="审核失败">
-        </div>
-    </div>
-    <div class="layui-form-item">
-        <label class="layui-form-label">添加时间</label>
-        <div class="layui-input-inline">
-            <input type="text" class="layui-input" id="time" placeholder="选择时间" name="addtime" autocomplete="off">
-        </div>
+        <div id="editor" class="layui-input-inline"></div>
     </div>
     <div class="layui-form-item">
         <div class="layui-input-block">
@@ -70,21 +62,22 @@
     </div>
 </form>
 
-
-
 <script>
-    //Demo
+    const E = window.wangEditor
+    const editor = new E(document.getElementById('editor'))
+    editor.config.height = 250
+    editor.create()
     layui.use(['form', 'upload', 'element', 'layer', 'laydate'], function () {
         var form = layui.form;
         var upload = layui.upload;
         var element = layui.element;
         var layer = layui.layer;
         var laydate = layui.laydate
-
         //监听提交
         form.on('submit(formDemo)', function (data) {
             let artData = data.field
-            let { title, author, sort, content, status, addtime, img } = artData
+            let { title, author, sort, status, addtime, img } = artData
+            let content = editor.txt.html()
             // 创建formData对象，并插入值
             let formData = new FormData()
             formData.append("title", title)
@@ -107,7 +100,7 @@
                     let { code, message } = res
                     if (code == 10000) {
                         layer.msg(message, { icon: 1, time: 1000 })
-                       location.href = '/dynTable'
+                        location.href = '/dynTable'
                     }
                 }
             })
@@ -164,9 +157,11 @@
                 }
             }
         });
-
         form.render()
     });
+    //Demo
+
+
 
 
 </script>

@@ -62,11 +62,7 @@
 <script>
     let curr = 1;
     let limit = 10;
-    $(function () {
-        fetchArticleData()
-    })
-    // 页面加载时执行函数
-    function fetchArticleData() {
+    window.onload = function () {
 
         layui.use('laypage', function () {
             var laypage = layui.laypage;
@@ -74,37 +70,37 @@
                 let { count, data } = res
                 renderData(laypage, count, limit)
             })
-
         });
-        //封装一个获取文章数据的函数
-        function fetchData(curr, limit, callback) {
-            $.get('getArticleData', { curr, limit }, function (res) {
-                callback && callback(res)
-            }, 'json')
-        }
+    }
+    //封装一个获取文章数据的函数
+    function fetchData(curr, limit, callback) {
+        $.get('getArticleData', { curr, limit }, function (res) {
+            callback && callback(res)
+        }, 'json')
+    }
 
-        // 关联分页组件
-        function renderData(laypage, count, limit) {
-            laypage.render({
-                elem: 'demo7',
-                count,
-                limit,
-                jump: function (obj) {
-                    let { curr, limit } = obj
-                    fetchData(curr, limit, (res) => {
-                        let tobdy = renderTable(res.data)
-                        $('#tbody').html(tobdy)
-                    })
-                }
-            })
-        }
+    // 关联分页组件
+    function renderData(laypage, count, limit) {
+        laypage.render({
+            elem: 'demo7',
+            count,
+            limit,
+            jump: function (obj) {
+                let { curr, limit } = obj
+                fetchData(curr, limit, (res) => {
+                    let tobdy = renderTable(res.data)
+                    $('#tbody').html(tobdy)
+                })
+            }
+        })
+    }
 
-        // 页面数据拼接
-        function renderTable(data) {
-            let articleData = '';
-            data.forEach((item, index) => {
-                let { art_id, title, author, img, cate_name, pub_time, pub_status, update_time } = item
-                articleData += `
+    // 页面数据拼接
+    function renderTable(data) {
+        let articleData = '';
+        data.forEach((item, index) => {
+            let { art_id, title, author, img, cate_name, pub_time, pub_status, update_time } = item
+            articleData += `
                 <tr style="text-align:center;">
                         <td>${index + 1}</td>
                         <td>
@@ -124,11 +120,10 @@
                         <button type="button" class="layui-btn layui-btn-normal layui-btn-sm">加入回收站</button>
                     </td>
                 </tr> `
-            })
-            return articleData
-        }
-
+        })
+        return articleData
     }
+
     // 文章编辑
     $('#tbody').on('click', '.editBtn', function () {
         let art_id = $(this).attr('art_id')

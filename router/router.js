@@ -2,6 +2,7 @@ const express = require('express')
 const path = require('path')
 const multer = require('multer')
 const router = express.Router()
+
 let userController = require('../controller/userController.js')
 let articleController = require('../controller/articleController.js')
 let sortController = require('../controller/sortController.js')
@@ -82,5 +83,9 @@ router.get('/fetchData',articleController.fetchData)
 
 // 回收站
 router.post('/recovery',articleController.recovery)
+
+
+// 博客路由管理 
+
 
 module.exports = router

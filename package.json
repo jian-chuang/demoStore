@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "art-template": "^4.13.2",
+    "cors": "^2.8.5",
     "crypto-js": "^4.1.1",
     "express": "^4.17.1",
     "express-art-template": "^1.0.1",

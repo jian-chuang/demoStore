@@ -17,9 +17,9 @@ connection.connect(function (err) {
 });
 
 // 封装调用sql语句函数
-function callSql(sql,bind){
+function callSql(sql){
     return new Promise((resolve,reject)=>{
-        connection.query(sql,bind,(err,rows)=>{
+        connection.query(sql,(err,rows)=>{
             if(err){
                 reject(err) 
             }else{

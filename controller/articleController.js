@@ -51,9 +51,9 @@ articleController.addPage = async (req, res) => {
 
 articleController.addArticle = async (req, res) => {
     let { title, author, sort, content, status, addtime, img } = req.body
-    let sql = "insert into articlelist(title,author,sort,content,pub_status,pub_time,img)values(?,?,?,?,?,?,?)";
-    let bind = [title, author, sort, content, status, addtime, img]
-    let result = await dbquery(sql, bind)
+    let sql = `insert into articlelist(title,author,sort,content,pub_status,pub_time,img,update_time)
+    values('${title}','${author}','${sort}','${content}','${status}','${addtime}','${img}','${addtime}')`;
+    let result = await dbquery(sql)
     if (result.affectedRows) {
         res.json({ message: '添加成功', code: 10000 })
     } else {
@@ -86,6 +86,7 @@ articleController.editPage = async (req, res) => {
     let sql2 = "select * from category";
     let sortData = await dbquery(sql2)
     let data = await dbquery(sql)
+    console.log(data[0]);
     res.render('edit_article.html', { articleData: data[0], sortData })
 }
 
@@ -148,42 +149,42 @@ articleController.delArticle = async (req, res) => {
 }
 
 // 动态数据列表
-articleController.dynTable = (req,res)=>{
+articleController.dynTable = (req, res) => {
     res.render('article.html')
 }
 
-articleController.fetchData = async (req,res)=>{
-    let {page,limit:pagesize,keyWord} = req.query
+articleController.fetchData = async (req, res) => {
+    let { page, limit: pagesize, keyWord } = req.query
     let where = ''
-    if(keyWord){
+    if (keyWord) {
         where += `and title like '%${keyWord}%'`
     }
-    let offset = (page - 1 ) * pagesize
+    let offset = (page - 1) * pagesize
     let sql = `select count(*) as count from articlelist where is_delete = 0 ${where}`
-    let sql2 =`select ti.*,t2.cate_name from articlelist ti left join category t2 on ti.sort = t2.cate_id
+    let sql2 = `select ti.*,t2.cate_name from articlelist ti left join category t2 on ti.sort = t2.cate_id
     where ti.is_delete = 0 ${where} order by art_id desc limit ${offset},${pagesize};`
     let Promise1 = dbquery(sql)
     let Promise2 = dbquery(sql2)
-    let result = await Promise.all([Promise1,Promise2])
+    let result = await Promise.all([Promise1, Promise2])
     let data = result[1]
-    let count = result[0][0].count  
+    let count = result[0][0].count
     let response = {
-        code:0,
-        count:count,
-        data:data,
+        code: 0,
+        count: count,
+        data: data,
     }
-    res.json(response)  
+    res.json(response)
 }
 
 // 回收站
-articleController.recovery = async (req,res)=>{
-    let {art_id} = req.body
+articleController.recovery = async (req, res) => {
+    let { art_id } = req.body
     let sql = `update articlelist set is_delete = 1 where art_id = ${art_id}`
     let result = await dbquery(sql)
-    if(result.affectedRows){
-        res.json({code:10024,message:'回收成功'})
-    }else{
-        res.json({code:10023,message:'回收失败'})
+    if (result.affectedRows) {
+        res.json({ code: 10024, message: '回收成功' })
+    } else {
+        res.json({ code: 10023, message: '回收失败' })
     }
 }
 

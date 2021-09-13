@@ -43,9 +43,7 @@
     </div>
     <div class="layui-form-item layui-form-text">
         <label class="layui-form-label">简介</label>
-        <div class="layui-input-block">
-            <textarea name="content" placeholder="请输入内容" class="layui-textarea"></textarea>
-        </div>
+        <div id="editor" class="layui-input-inline"></div>
     </div>
     <div class="layui-form-item">
         <label class="layui-form-label">审核状态</label>
@@ -70,6 +68,11 @@
 </form>
 
 <script>
+    const E = window.wangEditor
+    const editor = new E(document.getElementById('editor'))
+    editor.config.height = 250
+    editor.create()
+    editor.txt.html($('<div>').html('{{articleData.content}}').text())
     // 图片回显
     $('#demo1').attr('src', '{{articleData.img}}')
     //Demo
@@ -84,15 +87,16 @@
             'title': '{{articleData.title}}',
             'author': '{{articleData.author}}',
             'sort': '{{articleData.sort}}',
-            'content': "{{articleData.content}}",
             'status': '{{articleData.pub_status}}',
             'addtime': '{{articleData.pub_time}}',
             'img': "{{articleData.img}}"
         })
+        
         //监听提交
         form.on('submit(formDemo)', function (data) {
             let artData = data.field
-            let { id, title, author, sort, content, status, addtime, img } = artData
+            let { id, title, author, sort, status, addtime, img } = artData
+            let content = editor.txt.html()
             // 创建formData对象，并插入值
             let formData = new FormData()
             formData.append('art_id', id)
@@ -117,7 +121,7 @@
                     if (code == 10004) {
                         layer.msg(message, { icon: 1, time: 1000 })
                         location.href = '/dynTable'
-                    }else{
+                    } else {
                         layer.msg(message)
                     }
                 }
@@ -136,7 +140,7 @@
             elem: '#test1'
             // 改成自己的上传接口
             , url: '/editImg',
-            data:{fileImg:img}
+            data: { fileImg: img }
             // 这个应该是图片预览函数
             , before: function (obj) {
                 //预读本地文件示例，不支持ie8

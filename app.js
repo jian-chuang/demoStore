@@ -2,7 +2,9 @@ const express = require('express')
 const path = require('path')
 const moment = require('moment')
 const router = require('./router/router.js')
+const blogRouter = require('./router/blogRouter.js')
 const session = require('express-session')
+const cors = require('cors')
 const app = express()
 
 // session配置（会自动给浏览器分配一个session）
@@ -19,12 +21,37 @@ app.use(session({
 app.use(express.static(path.join(__dirname, '/public')));
 app.use("/uploads", express.static(path.join(__dirname, '/uploads')));
 
+// 模板引擎
+const artTemplate = require('art-template');
+const express_template = require('express-art-template');
+app.set('views', __dirname + '/views/');
+app.engine('html', express_template);
+app.set('view engine', 'html');
+
+// post请求中间件
+app.use(express.json()) // for parsing application/json
+app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
+
+// 时间过滤器
+artTemplate.defaults.imports.dateFormat = function (time, format = 'YYYY-MM-DD HH:mm:ss') {
+    return moment.unix(time).format(format);
+}
+
+// 时间过滤器
+artTemplate.defaults.imports.timeFormat = function (date, format = 'YYYY-MM-DD HH:mm:ss') {
+    return moment(date).format(format);
+}
+
+app.use(cors())
+// 前台路由挂载
+app.use('/blog', blogRouter)
+
 // 设置验证路由中间件统一管理路由验证
 app.use((req, res, next) => {
     let routerPath = req.path.toLowerCase()
     console.log(routerPath);
     // 设置不需要验证的路由
-    let noCheckSession = ['/login', '/submit', '/logout','/fetchdata'];
+    let noCheckSession = ['/login', '/submit', '/logout', '/fetchdata'];
     if (noCheckSession.includes(routerPath)) {
         next()
     } else {
@@ -40,39 +67,11 @@ app.use((req, res, next) => {
         }
     }
 })
-// 模板引擎
-const artTemplate = require('art-template');
-const express_template = require('express-art-template');
-
-app.set('views', __dirname + '/views/');
-
-app.engine('html', express_template);
-
-app.set('view engine', 'html');
 
 
-
-// post请求中间件
-app.use(express.json()) // for parsing application/json
-app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
-
-
-// 时间过滤器
-artTemplate.defaults.imports.dateFormat = function (time, format = 'YYYY-MM-DD HH:mm:ss') {
-    return moment.unix(time).format(format);
-}
-
-// 时间过滤器
-artTemplate.defaults.imports.timeFormat = function (date, format = 'YYYY-MM-DD HH:mm:ss') {
-    return moment(date).format(format);
-}
-
-
-
-
-
-// 路由挂载
+// 后台系统路由挂载
 app.use(router)
+
 
 
 app.listen(3000, () => {
