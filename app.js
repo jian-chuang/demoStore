@@ -7,6 +7,8 @@ const session = require('express-session')
 const cors = require('cors')
 const app = express()
 
+
+
 // session配置（会自动给浏览器分配一个session）
 app.use(session({
     name: 'SESSIONID',  // session会话名称在cookie中的值
@@ -41,6 +43,9 @@ artTemplate.defaults.imports.dateFormat = function (time, format = 'YYYY-MM-DD H
 artTemplate.defaults.imports.timeFormat = function (date, format = 'YYYY-MM-DD HH:mm:ss') {
     return moment(date).format(format);
 }
+
+
+
 
 app.use(cors())
 // 前台路由挂载

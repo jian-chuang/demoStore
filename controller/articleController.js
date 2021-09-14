@@ -1,16 +1,16 @@
-const path = require('path')
-const fs = require('fs')
-let dbquery = require('../moduleMysql/mysql.js')
+const path = require (`path`)
+const fs = require(`fs`)
+let dbquery = require(`../moduleMysql/mysql.js`)
 let articleController = {}
 
 //首页
 articleController.indexPage = (req, res) => {
-    res.render('index.html')
+    res.render(`index.html`)
 }
 
 // 文章列表
 articleController.listPage = async (req, res) => {
-    res.render('article_list.html')
+    res.render(`article_list.html`)
 }
 
 // // 文章数据加载
@@ -44,9 +44,9 @@ articleController.listPage = async (req, res) => {
 
 // 添加文章页面
 articleController.addPage = async (req, res) => {
-    let sql = "select * from category";
+    let sql = `select * from category`;
     let data = await dbquery(sql)
-    res.render('add_article.html', { sortData: data })
+    res.render(`add_article.html`, { sortData: data })
 }
 
 articleController.addArticle = async (req, res) => {
@@ -55,27 +55,27 @@ articleController.addArticle = async (req, res) => {
     values('${title}','${author}','${sort}','${content}','${status}','${addtime}','${img}','${addtime}')`;
     let result = await dbquery(sql)
     if (result.affectedRows) {
-        res.json({ message: '添加成功', code: 10000 })
+        res.json({ message: `添加成功`, code: 10000 })
     } else {
-        res.json({ message: "添加失败", code: 10002 })
+        res.json({ message: `添加失败`, code: 10002 })
     }
 }
 
 articleController.uploadImg = (req, res) => {
-    let imgPath = ''
+    let imgPath = ``
     // 判断是否有图片
     if (req.file) {
         let { originalname, filename } = req.file
-        let suffix = originalname.substring(originalname.indexOf('.'))
-        let oldPath = path.join(__dirname, '../', 'uploads', filename);
-        let newPath = path.join(__dirname, '../', 'uploads', filename) + suffix;
+        let suffix = originalname.substring(originalname.indexOf(`.`))
+        let oldPath = path.join(__dirname, `../`, `uploads`, filename);
+        let newPath = path.join(__dirname, `../`, `uploads`, filename) + suffix;
         imgPath = `uploads/${filename}${suffix}`
         fs.renameSync(oldPath, newPath, err => {
             if (err) { throw err }
         })
-        res.json({ message: '上传成功', code: '10000', 'path': imgPath })
+        res.json({ message: `上传成功`, code: `10000`, 'path': imgPath })
     } else {
-        res.json({ message: '没有文件上传' })
+        res.json({ message: `没有文件上传` })
     }
 }
 
@@ -83,11 +83,11 @@ articleController.uploadImg = (req, res) => {
 articleController.editPage = async (req, res) => {
     let { art_id } = req.body;
     let sql = `select * from articlelist where art_id = ${art_id}`;
-    let sql2 = "select * from category";
+    let sql2 = `select * from category`;
     let sortData = await dbquery(sql2)
     let data = await dbquery(sql)
     console.log(data[0]);
-    res.render('edit_article.html', { articleData: data[0], sortData })
+    res.render(`edit_article.html`, { articleData: data[0], sortData })
 }
 
 articleController.editArticle = async (req, res) => {
@@ -97,27 +97,27 @@ articleController.editArticle = async (req, res) => {
     where art_id = ${art_id}`
     let result = await dbquery(sql);
     if (result.affectedRows) {
-        res.json({ code: 10004, message: '更新成功' })
+        res.json({ code: 10004, message: `更新成功` })
     } else {
-        res.json({ code: 10005, message: '更新失败' })
+        res.json({ code: 10005, message: `更新失败` })
     }
 }
 
 articleController.uploadedit = (req, res) => {
-    let imgPath = ''
+    let imgPath = ``
     let { fileImg } = req.body
     if (req.file) {
         let { originalname, filename } = req.file
-        let suffix = originalname.substring(originalname.indexOf('.'))
-        let oldPath = path.join(__dirname, '../', 'uploads', filename);
-        let newPath = path.join(__dirname, '../', 'uploads', filename) + suffix;
+        let suffix = originalname.substring(originalname.indexOf(`.`))
+        let oldPath = path.join(__dirname, `../`, `uploads`, filename);
+        let newPath = path.join(__dirname, `../`, `uploads`, filename) + suffix;
         imgPath = `uploads/${filename}${suffix}`
         fs.renameSync(oldPath, newPath, err => {
             if (err) { throw err }
         })
-        res.json({ message: '上传成功', code: '10000', 'path': imgPath })
+        res.json({ message: `上传成功`, code: `10000`, 'path': imgPath })
     } else {
-        res.json({ message: '没有文件上传' })
+        res.json({ message: `没有文件上传` })
     }
 }
 
@@ -136,26 +136,26 @@ articleController.delArticle = async (req, res) => {
     let result = await dbquery(sql)
     if (result.affectedRows) {
         if (img) {
-            let oldPath = path.join(__dirname, '../', img)
+            let oldPath = path.join(__dirname, `../`, img)
             fs.unlink(oldPath, (err) => {
                 // 静默
                 if (err) { throw err }
             })
         }
-        res.json({ code: 10000, message: '删除成功' })
+        res.json({ code: 10000, message: `删除成功` })
     } else {
-        res.json({ code: 10002, message: '删除失败' })
+        res.json({ code: 10002, message: `删除失败` })
     }
 }
 
 // 动态数据列表
 articleController.dynTable = (req, res) => {
-    res.render('article.html')
+    res.render(`article.html`)
 }
 
 articleController.fetchData = async (req, res) => {
     let { page, limit: pagesize, keyWord } = req.query
-    let where = ''
+    let where = ``
     if (keyWord) {
         where += `and title like '%${keyWord}%'`
     }
@@ -182,9 +182,9 @@ articleController.recovery = async (req, res) => {
     let sql = `update articlelist set is_delete = 1 where art_id = ${art_id}`
     let result = await dbquery(sql)
     if (result.affectedRows) {
-        res.json({ code: 10024, message: '回收成功' })
+        res.json({ code: 10024, message: `回收成功` })
     } else {
-        res.json({ code: 10023, message: '回收失败' })
+        res.json({ code: 10023, message: `回收失败` })
     }
 }
 
